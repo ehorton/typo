@@ -104,10 +104,10 @@ class Article < Content
     end
 
     def search_with_pagination(search_hash, paginate_hash)
-      
+
       state = (search_hash[:state] and ["no_draft", "drafts", "published", "withdrawn", "pending"].include? search_hash[:state]) ? search_hash[:state] : 'no_draft'
-      
-      
+
+
       list_function  = ["Article.#{state}"] + function_search_no_draft(search_hash)
 
       if search_hash[:category] and search_hash[:category].to_i > 0
@@ -206,6 +206,10 @@ class Article < Content
 
   def edit_url
     blog.url_for(:controller => "/admin/content", :action =>"edit", :id => id)
+  end
+
+  def assoc_comments
+    Comment.find_by_article_id(self.id)
   end
 
   def delete_url
@@ -402,6 +406,21 @@ class Article < Content
 
   def password_protected?
     not password.blank?
+  end
+
+
+
+  def merge(merge_id)
+    @article = Article.find(self.id)
+    @merge_article = Article.find(merge_id)
+    @article.body += "#{@merge_article.body}"
+    @article.save!
+    @comments = Comment.find_all_by_article_id (merge_id)
+    @comments.each do |comment|
+      comment.article_id = self.id
+      comment.save!
+    end
+    @merge_article.destroy
   end
 
   def add_comment(params)
