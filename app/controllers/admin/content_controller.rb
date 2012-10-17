@@ -27,6 +27,16 @@ class Admin::ContentController < Admin::BaseController
     new_or_edit
   end
 
+  def merge
+    @target = params[:merge_with]
+    @article = Article.find(params[:current])
+    if @article.merge(@target)
+      flash[:notice] = "Merge successful"
+    else
+      flash[:warn] = "Merge failed"
+    end
+    redirect_to :action => 'index'
+  end
 
   def edit
     @article = Article.find(params[:id])
